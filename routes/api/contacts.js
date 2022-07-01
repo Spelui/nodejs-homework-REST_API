@@ -1,5 +1,4 @@
 const express = require("express");
-const { v4: uuidv4 } = require("uuid");
 const router = express.Router();
 
 const {
@@ -8,6 +7,7 @@ const {
   removeContact,
   addContact,
   updateContact,
+  updateStatusContact,
 } = require("../../models/contacts");
 
 const { postValidate, updateValidate } = require("../../middleware/validate");
@@ -24,7 +24,6 @@ router.get("/", async (req, res, next) => {
 router.get("/:contactId", async (req, res, next) => {
   const { contactId } = req.params;
   const contact = await getContactById(contactId);
-  console.log("~ contact", contact);
   if (contact.length === 0) {
     return res.status(404).json({
       message: `Contact with id: "${contactId}" does't exist. Please try again!`,
@@ -34,12 +33,12 @@ router.get("/:contactId", async (req, res, next) => {
 });
 
 router.post("/", postValidate, async (req, res, next) => {
-  const { name, email, phone } = req.body;
+  const { name, email, phone, favorite } = req.body;
   const body = {
-    id: uuidv4(),
     name,
     email,
     phone,
+    favorite: favorite || false,
   };
   addContact(body);
   res.status(201).json({ body });
@@ -66,6 +65,19 @@ router.put("/:contactId", updateValidate, async (req, res, next) => {
   }
 
   return res.status(200).json({ ...uptContact });
+});
+
+router.patch("/:contactId/favorite", async (req, res, next) => {
+  const { contactId } = req.params;
+
+  if (!req.body) {
+    return res.status(400).json({ message: "missing field favorite" });
+  }
+  const updStatus = await updateStatusContact(contactId, req.body);
+  if (!updStatus) {
+    return res.status(404).json({ message: "Not found" });
+  }
+  return res.status(200).json({ updStatus });
 });
 
 module.exports = router;
