@@ -32,7 +32,38 @@ const updateValidate = (req, res, next) => {
   next();
 };
 
+const signUpValidate = (req, res, next) => {
+  const userSchema = Joi.object({
+    email: Joi.string().min(6).max(60).email().required(),
+    password: Joi.string().min(8).required(),
+    subscription: Joi.string()
+      .valid("starter", "pro", "business")
+      .default("starter"),
+  });
+
+  const { error } = userSchema.validate(req.body);
+
+  if (error) {
+    return res.status(400).send(error.message);
+  }
+  next();
+};
+
+const signInValidate = (req, res, next) => {
+  const userSchema = Joi.object({
+    email: Joi.string().min(6).max(60).email().required(),
+    password: Joi.string().min(8).required(),
+  });
+  const { error } = userSchema.validate(req.body);
+  if (error) {
+    return res.status(400).send(error.message);
+  }
+  next();
+};
+
 module.exports = {
   postValidate,
   updateValidate,
+  signUpValidate,
+  signInValidate,
 };
