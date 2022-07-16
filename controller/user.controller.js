@@ -1,8 +1,8 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const userModel = require("../db/userModel");
-const { serializeUser, serializeUserLogIn } = require("./serializeUser");
+const userModel = require("../models/user.model");
+const { serializeUser, serializeUserLogIn } = require("../utils/serializeUser");
 
 const getCurrentUser = async (req, res, next) => {
   const user = await userModel.findOne({ token: req.user.token });

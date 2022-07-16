@@ -3,7 +3,7 @@ const contactsRouter = express.Router();
 
 const { tokenMiddleware } = require("../../middleware/tokenMiddleware");
 
-const asyncWrapper = require("../../middleware/asyncWrapper");
+const asyncWrapper = require("../../utils/asyncWrapper");
 
 const {
   listContacts,
@@ -12,7 +12,7 @@ const {
   addContact,
   updateContact,
   updateStatusContact,
-} = require("../../models/contacts");
+} = require("../../controller/contacts.controller");
 
 const { postValidate, updateValidate } = require("../../middleware/validate");
 

@@ -7,10 +7,10 @@ const {
   getCurrentUser,
   patchSubscription,
   logOutUser,
-} = require("../../models/user");
+} = require("../../controller/user.controller");
 const { tokenMiddleware } = require("../../middleware/tokenMiddleware");
 const { signUpValidate, signInValidate } = require("../../middleware/validate");
-const asyncWrapper = require("../../middleware/asyncWrapper");
+const asyncWrapper = require("../../utils/asyncWrapper");
 
 userRouter.get("/current", tokenMiddleware, asyncWrapper(getCurrentUser));
 
