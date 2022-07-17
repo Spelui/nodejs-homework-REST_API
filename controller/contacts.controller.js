@@ -1,4 +1,4 @@
-const contactModel = require("../db/contactModel");
+const contactModel = require("../models/contact.model");
 const { NotFound, Conflict } = require("http-errors");
 
 const listContacts = async (req, res, next) => {
