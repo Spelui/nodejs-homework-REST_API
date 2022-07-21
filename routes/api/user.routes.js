@@ -2,6 +2,8 @@ const express = require('express');
 const userRouter = express.Router();
 
 const {
+  verifyController,
+  verificationTokenController,
   signUpUser,
   signInUser,
   getCurrentUser,
@@ -13,6 +15,13 @@ const { tokenMiddleware } = require('../../middleware/tokenMiddleware');
 const { signUpValidate, signInValidate } = require('../../middleware/validate');
 const asyncWrapper = require('../../utils/asyncWrapper');
 const uploadFile = require('../../middleware/upload.file.middleware.js');
+
+userRouter.post('/verify', asyncWrapper(verifyController));
+
+userRouter.get(
+  '/verify/:verificationToken',
+  asyncWrapper(verificationTokenController)
+);
 
 userRouter.get('/current', tokenMiddleware, asyncWrapper(getCurrentUser));
 
