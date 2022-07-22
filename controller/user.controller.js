@@ -4,9 +4,11 @@ const fs = require('fs/promises');
 const path = require('path');
 const gravatar = require('gravatar');
 const Jimp = require('jimp');
+const { v4: uuidv4 } = require('uuid');
 
 const userModel = require('../models/user.model');
 const { serializeUser, serializeUserLogIn } = require('../utils/serializeUser');
+const sendMailSendDGrid = require('../utils/sendMail');
 
 const getCurrentUser = async (req, res, next) => {
   const user = await userModel.findOne({ token: req.user.token });
@@ -25,12 +27,16 @@ const signUpUser = async (req, res, next) => {
     return res.status(409).json({ message: 'Email in use' });
   }
   const avatarURL = gravatar.url(email);
+  const verificationToken = uuidv4();
   const hashingPassword = await bcrypt.hash(password, 8);
   const user = await userModel.create({
     email,
     password: hashingPassword,
     avatarURL,
+    verificationToken,
   });
+
+  sendMailSendDGrid(email, verificationToken);
 
   return res.status(201).json(serializeUser(user));
 };
@@ -40,6 +46,11 @@ const signInUser = async (req, res, next) => {
   const user = await userModel.findOne({ email });
   if (!user) {
     return res.status(401).json({ message: 'Email or password is wrong' });
+  }
+  if (user.verify === false) {
+    return res
+      .status(401)
+      .json({ message: 'You must confirm your email to log in' });
   }
   const isValid = await bcrypt.compare(password, user.password);
 
@@ -111,7 +122,45 @@ const patchUserAvatar = async (req, res) => {
   res.status(200).json({ avatarURL: newFilePath });
 };
 
+const verifyController = async (req, res, next) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Bad Request' });
+  }
+
+  const user = await userModel.findOne({ email });
+
+  if (user.verify === true) {
+    return res
+      .status(400)
+      .json({ message: 'Verification has already been passed' });
+  }
+
+  sendMailSendDGrid(email, user.verificationToken);
+  res.status(200).json({ message: 'Verification email sent' });
+};
+
+const verificationTokenController = async (req, res, next) => {
+  const verificationToken = req.params.verificationToken;
+
+  const user = await userModel.findOne({ verificationToken });
+
+  if (!user) {
+    return res.status(404).json({ message: 'Not found' });
+  }
+
+  user.verificationToken = 'null';
+  user.verify = true;
+
+  await user.save();
+
+  res.status(200).json({ message: 'Verification successful' });
+};
+
 module.exports = {
+  verificationTokenController,
+  verifyController,
   getCurrentUser,
   patchSubscription,
   signInUser,
